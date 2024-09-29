@@ -1,27 +1,27 @@
-a = 0
+flag_1 = True
+flag_2 = True
 
-def send_email(message, recipient, sender = "university.help@gmail.com", a = None):
-    for i in recipient:
-        if i == "@":
-            a += 1
-        elif i == ".com":
-            a += 1
-        elif i == ".ru":
-            a += 1
-        elif i == ".net":
-            a += 1
-        if a == 0 or a == 1:
-            print("Невозможно отправить письмо с адреса" <sender> "на адрес" <recipient>)
+def send_email(message, recipient, sender = "university.help@gmail.com"):
+    if "@" in recipient and sender:
+        flag_1 = True
+    else:
+        flag_1 = False
+    for i in [".com",".ru",".net"]:
+        if i in recipient and sender:
+            flag_2 = True
         else:
+            flag_2 = False
+
+        if flag_1 == True and flag_2 == True:
             if sender == "university.help@gmail.com":
-                print("Письмо успешно отправлено с адреса <sender> на адрес <recipient>.")
-            else:
-                print("НЕСТАНДАРТНЫЙ ОТПРАВИТЕЛЬ! Письмо отправлено с адреса <sender> на адрес <recipient>.")
-            if sender == recipient:
+                print("Письмо успешно отправлено с адреса", sender, "на адрес", recipient, ".")
+            elif sender != "university.help@gmail.com":
+                print("НЕСТАНДАРТНЫЙ ОТПРАВИТЕЛЬ! Письмо отправлено с адреса", sender, "на адрес", recipient, ".")
+            elif sender == recipient:
                 print("Нельзя отправить письмо самому себе!")
+            else:
+                print("Невозможно отправить письмо с адреса", sender, "на адрес", recipient)
             return
-        return
-    return
 
 send_email('Это сообщение для проверки связи', 'vasyok1337@gmail.com')
 send_email('Вы видите это сообщение как лучший студент курса!', 'urban.fan@mail.ru', sender='urban.info@gmail.com')
