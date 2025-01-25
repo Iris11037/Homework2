@@ -4,7 +4,6 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.dispatcher import FSMContext
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-import asyncio
 
 api = ""
 bot = Bot(token=api)
@@ -15,55 +14,47 @@ class UserState(StatesGroup):
     growth = State()
     weight = State()
 
-@dp.message_handler(text="calories")
-async def set_age(call):
-    await call.message.answer("Введите свой возраст:")
-    await UserState.age.set()
-
-    kb = ReplyKeyboardMarkup(resize_keyboard=True)
-    button = KeyboardButton(text="Рассчитать")
-    button2 = KeyboardButton(text="Информация")
-    kb.add(button)
-    kb.add(button2)
+kb = ReplyKeyboardMarkup(resize_keyboard=True)
+kb.add(KeyboardButton('Рассчитать'))
+kb.add(KeyboardButton('Информация'))
 
 menu = InlineKeyboardMarkup()
-button3 = InlineKeyboardButton(text = 'Рассчитать норму калорий', callback_data='calories')
-button4 = InlineKeyboardButton(text = 'Формулы расчёта', callback_data='formulas')
-menu.add(button3)
-menu.add(button4)
+menu.add(InlineKeyboardButton('Рассчитать норму калорий', callback_data='calories'))
+menu.add(InlineKeyboardButton('Формулы расчёта', callback_data='formulas'))
+
+@dp.message_handler(commands = ["start"])
+async def start_message(message: types.Message):
+    await message.answer('Привет! Я бот помогающий твоему здоровью. Для расчета калорий нажмите "Рассчитать".', reply_markup=kb)
 
 @dp.message_handler(text = "Рассчитать")
-async def main_menu(message):
+async def main_menu(message: types.Message):
     await message.answer("Выбери опцию:", reply_markup=menu)
 
 @dp.callback_query_handler(text = 'formulas')
-async def get_formulas(call):
+async def get_formulas(call: types.CallbackQuery):
     await call.message.answer("10 х вес (кг) + 6,25 x рост (см) – 5 х возраст (г) - 161")
     await call.answer()
 
-@dp.message_handler(commands = ["start"])
-async def Start_message(message):
-    await message.answer("Привет! Я бот помогающий твоему здоровью", reply_markup=kb)
-
-@dp.message_handler(text = "Рассчитать")
-async def inform(message):
-    await message.answer("Рассчитать")
+@dp.callback_query_handler(text = "calories")
+async def set_age(call: types.CallbackQuery):
+    await call.message.answer("Введите свой возраст:", reply_markup=types.ReplyKeyboardRemove())
+    await UserState.age.set()
 
 @dp.message_handler(state=UserState.age)
-async def set_growth(message, state):
-    await state.update_data(age=message.text)
+async def set_growth(message: types.Message, state: FSMContext):
+    await state.update_data(age=int(message.text))
     await message.answer("Введите свой рост:")
     await UserState.growth.set()
 
 @dp.message_handler(state=UserState.growth)
-async def set_weight(message, state):
-    await state.update_data(growth=message.text)
+async def set_weight(message: types.Message, state: FSMContext):
+    await state.update_data(growth=int(message.text))
     await message.answer("Введите свой вес:")
     await UserState.weight.set()
 
 @dp.message_handler(state=UserState.weight)
-async def send_calories(message, state):
-    await state.update_data(weight=message.text)
+async def send_calories(message: types.Message, state: FSMContext):
+    await state.update_data(weight=int(message.text))
     data = await state.get_data()
     age = float(data.get('age'))
     growth = float(data.get('growth'))
